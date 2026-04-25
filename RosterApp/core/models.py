@@ -21,7 +21,7 @@ class Employee(models.Model):
 class Roster(models.Model):
     SHIFT_CODES = [
         ('E', 'E'), ('E-2', 'E-2'), ('M', 'M'), ('A', 'A'), ('N', 'N'),
-        ('CL', 'CL'), ('EL', 'EL'), ('UL', 'UL'), ('H', 'H'), ('ML', 'ML'), ('WO', 'WO')
+        ('CL', 'CL'), ('EL', 'EL'), ('UL', 'UL'), ('H', 'H'), ('ML', 'ML'), ('HY', 'HY'), ('WO', 'WO')
     ]
     
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='rosters')
