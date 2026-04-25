@@ -21,7 +21,7 @@
                     {% if user.employee_profile.role_type == 'WFM' or user.employee_profile.role_type == 'Supervisor' %}
                         <a href="{% url 'requests' %}" class="btn-logout" style="margin-right: 1rem; border-color: var(--text-grey);"><i class="fas fa-tasks"></i> Requests</a>
                     {% endif %}
-                    <span class="user-info"><i class="fas fa-user-circle"></i> {{ user.employee_profile.name }} ({{ user.employee_profile.role_type }})</span>
+                    <span class="user-info"><i class="fas fa-user-circle"></i> {{ employee.name|default:user.employee_profile.name|default:"Guest Agent" }} ({{ employee.role_type|default:user.employee_profile.role_type|default:"Agent" }})</span>
                     <a href="{% url 'logout' %}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 {% endif %}
             </div>

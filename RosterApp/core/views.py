@@ -53,9 +53,9 @@ def dashboard_view(request):
     # If no profile, use a dummy one for the session (prevents crashing)
     if not employee:
         employee = type('obj', (object,), {
-            'name': 'System Admin',
-            'emp_id': 'ADMIN',
-            'role_type': 'WFM' if request.user.is_superuser else 'Guest'
+            'name': 'Guest Agent' if request.user.username == 'agent_guest' else 'System Admin',
+            'emp_id': 'GUEST' if request.user.username == 'agent_guest' else 'ADMIN',
+            'role_type': 'Agent' if request.user.username == 'agent_guest' else ('WFM' if request.user.is_superuser else 'Guest')
         })
     
     # Get unique dates from Roster to build horizontal header
