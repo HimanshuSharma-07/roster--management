@@ -468,6 +468,10 @@ body {
     background-color: var(--color-H);
     color: #b45309;
     text-align: center;
+
+}
+.shift-None {
+    text-align: center;
 }
 
 .shift-ML {

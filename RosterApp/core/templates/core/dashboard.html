@@ -84,19 +84,21 @@
 <div class="view-navigation" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: #f8fafc; padding: 10px 20px; border-radius: 12px; border: 1px solid var(--border-color);">
     <div>
         <span style="font-weight: 600; color: var(--text-muted);">
-            Showing {{ f_view|title }} {{ f_page|add:1 }}
+            Showing: {{ view_label }}
         </span>
     </div>
     <div style="display: flex; gap: 10px;">
         {% if f_page > 0 %}
-        <a href="?role={{ f_role }}&pms={{ f_pms }}&manager={{ f_manager }}&view={{ f_view }}&page={{ f_page|add:-1 }}" class="btn-action btn-secondary btn-sm">
-            <i class="fas fa-chevron-left"></i> Previous {{ f_view|title }}
+        <a href="?role={{ f_role|default_if_none:'' }}&pms={{ f_pms|default_if_none:'' }}&manager={{ f_manager|default_if_none:'' }}&view={{ f_view }}&page={{ f_page|add:-1 }}" class="btn-action btn-secondary btn-sm">
+            <i class="fas fa-chevron-left"></i> Previous
         </a>
         {% endif %}
         
-        <a href="?role={{ f_role }}&pms={{ f_pms }}&manager={{ f_manager }}&view={{ f_view }}&page={{ f_page|add:1 }}" class="btn-action btn-primary btn-sm">
-            Next {{ f_view|title }} <i class="fas fa-chevron-right"></i>
+        {% if has_next %}
+        <a href="?role={{ f_role|default_if_none:'' }}&pms={{ f_pms|default_if_none:'' }}&manager={{ f_manager|default_if_none:'' }}&view={{ f_view }}&page={{ f_page|add:1 }}" class="btn-action btn-primary btn-sm">
+            Next <i class="fas fa-chevron-right"></i>
         </a>
+        {% endif %}
     </div>
 </div>
 {% endif %}

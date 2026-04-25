@@ -59,7 +59,7 @@ def dashboard_view(request):
         })
     
     # Get unique dates from Roster to build horizontal header
-    dates = Roster.objects.order_by('date').values_list('date', flat=True).distinct()
+    dates = list(Roster.objects.order_by('date').values_list('date', flat=True).distinct())
     
     # Capture filters
     f_role = request.GET.get('role')
@@ -73,35 +73,66 @@ def dashboard_view(request):
     
     # Apply View Range Filter (Week / Month) with Pagination
     total_dates = len(dates)
+    view_label = ""
+    has_next = False
     
-    # Auto-detect current week/month page if not specified
-    if 'page' not in request.GET and f_view != 'all':
+    if dates and f_view != 'all':
         today = datetime.now().date()
-        try:
-            # Find the index of today (or the closest date)
-            closest_idx = 0
-            for i, d in enumerate(dates):
-                if d >= today:
-                    closest_idx = i
-                    break
+        
+        if f_view == 'week':
+            weeks = []
+            week_map = {}
+            for d in dates:
+                w_key = d.isocalendar()[:2]
+                if w_key not in week_map:
+                    week_map[w_key] = []
+                    weeks.append(w_key)
+                week_map[w_key].append(d)
+                
+            total_pages = len(weeks)
             
-            if f_view == 'week':
-                f_page = closest_idx // 7
-            elif f_view == 'month':
-                f_page = closest_idx // 31
-        except:
-            f_page = 0
-
-    if f_view == 'week':
-        start = f_page * 7
-        end = start + 7
-        dates = dates[start:end]
-    elif f_view == 'month':
-        start = f_page * 31
-        end = start + 31
-        dates = dates[start:end]
+            if 'page' not in request.GET:
+                today_w_key = today.isocalendar()[:2]
+                if today_w_key in weeks:
+                    f_page = weeks.index(today_w_key)
+                else:
+                    closest_d = min(dates, key=lambda x: abs(x - today))
+                    f_page = weeks.index(closest_d.isocalendar()[:2])
+            
+            f_page = max(0, min(f_page, total_pages - 1))
+            dates = week_map[weeks[f_page]]
+            
+            start_of_week = dates[0] - timedelta(days=dates[0].weekday())
+            view_label = f"Week of {start_of_week.strftime('%a, %d %b %Y')}"
+            has_next = f_page < total_pages - 1
+            
+        elif f_view == 'month':
+            months = []
+            month_map = {}
+            for d in dates:
+                m_key = (d.year, d.month)
+                if m_key not in month_map:
+                    month_map[m_key] = []
+                    months.append(m_key)
+                month_map[m_key].append(d)
+                
+            total_pages = len(months)
+            
+            if 'page' not in request.GET:
+                today_m_key = (today.year, today.month)
+                if today_m_key in months:
+                    f_page = months.index(today_m_key)
+                else:
+                    closest_d = min(dates, key=lambda x: abs(x - today))
+                    f_page = months.index((closest_d.year, closest_d.month))
+            
+            f_page = max(0, min(f_page, total_pages - 1))
+            dates = month_map[months[f_page]]
+            
+            view_label = f"{dates[0].strftime('%B %Y')}"
+            has_next = f_page < total_pages - 1
     else:
-        f_page = 0 # Reset page for 'all' view
+        f_page = 0
     
     if f_role: employees = employees.filter(role_type=f_role)
     if f_pms: employees = employees.filter(pms=f_pms)
@@ -133,6 +164,8 @@ def dashboard_view(request):
         'f_manager': f_manager,
         'f_view': f_view,
         'f_page': f_page,
+        'view_label': view_label,
+        'has_next': has_next,
         'total_dates': total_dates,
     }
     return render(request, 'core/dashboard.html', context)
@@ -198,12 +231,15 @@ def upload_roster(request):
                 
                 for d_str in date_cols:
                     try:
-                        # Robust date parsing (handles 06-Apr, 04/06/2026, etc.)
-                        date_obj = pd.to_datetime(d_str, dayfirst=True, errors='coerce').date()
+                        # Robust date parsing
+                        date_obj = pd.to_datetime(d_str, format='mixed', errors='coerce').date()
                         if pd.isna(date_obj): continue
                         
+                        if pd.isna(row[d_str]):
+                            continue
+                            
                         shift_val = str(row[d_str]).strip()
-                        if shift_val:
+                        if shift_val and shift_val.lower() not in ['nan', 'none', '-', '']:
                             Roster.objects.update_or_create(
                                 employee=emp, date=date_obj,
                                 defaults={'shift_code': shift_val}
