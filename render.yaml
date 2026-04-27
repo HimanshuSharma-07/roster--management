@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: roster-app
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn roster_system.wsgi
+    disk:
+      name: roster-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////data/db.sqlite3
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
