@@ -2,6 +2,7 @@ services:
   - type: web
     name: roster-app
     env: python
+    rootDir: RosterApp
     buildCommand: ./build.sh
     startCommand: gunicorn roster_system.wsgi
     disk:
